@@ -42,7 +42,6 @@ import java.net.URL;
 
 public class MainActivity extends AppCompatActivity implements ForecastAdapterOnClickHandler, LoaderManager.LoaderCallbacks<String[]> {
 
-    private static final String LOCATION_EXTRA = "location_extra";
     private static final int WEATHER_LOADER = 24;
 
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -103,23 +102,6 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
         mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
 
         getSupportLoaderManager().initLoader(WEATHER_LOADER, null, this);
-        /* Once all of our views are setup, we can load the weather data. */
-        loadWeatherData();
-    }
-
-    /**
-     * This method will get the user's preferred location for weather, and then tell some
-     * background method to get the weather data in the background.
-     */
-    private void loadWeatherData() {
-        showWeatherDataView();
-
-        String location = SunshinePreferences.getPreferredWeatherLocation(this);
-
-        Bundle bundle = new Bundle();
-        bundle.putString(LOCATION_EXTRA, location);
-
-        getSupportLoaderManager().restartLoader(WEATHER_LOADER, bundle, this);
     }
 
     /**
@@ -185,11 +167,8 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
             @Override
             public String[] loadInBackground() {
                 /* If there's no zip code, there's nothing to look up. */
-                if (args == null || !args.containsKey(LOCATION_EXTRA)) {
-                    return null;
-                }
 
-                String location = args.getString(LOCATION_EXTRA);
+                String location = SunshinePreferences.getPreferredWeatherLocation(getContext());
                 if (location == null || location.isEmpty()) {
                     return null;
                 }
@@ -276,7 +255,7 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapterOn
         // TODO (5) Refactor the refresh functionality to work with our AsyncTaskLoader
         if (id == R.id.action_refresh) {
             mForecastAdapter.setWeatherData(null);
-            loadWeatherData();
+            getSupportLoaderManager().restartLoader(WEATHER_LOADER, null, this);
             return true;
         }
 
